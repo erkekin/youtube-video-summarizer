@@ -97,16 +97,23 @@ def transcribe():
         return f"Error processing request: {str(e)}", 500
 
 def extract_video_id(source):
+    """Extract YouTube video ID from various URL formats including YouTube Shorts."""
     # Check if source is already a video ID (simple format validation)
     if re.match(r'^[a-zA-Z0-9_-]{11}$', source):
         return source
     
-    # Extract from youtube.com URL
-    youtube_regex = r'(?:youtube\.com\/(?:[^\/\n\s]+\/\s*[^\/\n\s]+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
-    match = re.search(youtube_regex, source)
-    
+    # Try to extract from YouTube Shorts URL first
+    shorts_regex = r'youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})'
+    match = re.search(shorts_regex, source)
     if match:
         return match.group(1)
+    
+    # Extract from standard YouTube URL
+    youtube_regex = r'(?:youtube\.com\/(?:[^\/\n\s]+\/\s*[^\/\n\s]+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
+    match = re.search(youtube_regex, source)
+    if match:
+        return match.group(1)
+    
     return None
 
 if __name__ == '__main__':
