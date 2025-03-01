@@ -3,8 +3,33 @@ import requests
 import re
 import gemini
 from youtube_transcript_api import YouTubeTranscriptApi
+import datetime
+import os
 
 app = Flask(__name__)
+
+# Create storage directory if it doesn't exist
+STORAGE_DIR = 'transcription_history'
+os.makedirs(STORAGE_DIR, exist_ok=True)
+
+def save_transcription(source, response):
+    """Save transcription request and response to a text file with timestamp."""
+    # Create timestamp for filename
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Create a clean filename (remove URL characters)
+    video_id = extract_video_id(source)
+    filename = f"{timestamp}_{video_id}.txt"
+    filepath = os.path.join(STORAGE_DIR, filename)
+    
+    # Write to file
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(f"SOURCE: {source}\n\n")
+        f.write(f"TIMESTAMP: {datetime.datetime.now().isoformat()}\n\n")
+        f.write("RESPONSE:\n\n")
+        f.write(response)
+    
+    return filepath
 
 @app.route('/transcribe', methods=['GET'])
 def transcribe():
@@ -36,7 +61,7 @@ def transcribe():
         
         # Create appropriate prompt based on client type
         if is_browser:
-            prompt = f"Explain the key points in the below video transcription. Format your response as HTML with proper headings, paragraphs, and lists. Include a title at the top. Video source: {source}\n\n{transcript_text}"
+            prompt = f"Explain the key points in the below video transcription. Format your response as HTML with proper headings, paragraphs, and lists. Include a title at the top. IMPORTANT: Return only raw HTML without any code block markers or backticks. Video source: {source}\n\n{transcript_text}"
             response_type = 'text/html'
         else:
             prompt = f"Explain the key points in the below video transcription. Format your response in Markdown with proper headings, lists, and emphasis. Include a title at the top. Video source: {source}\n\n{transcript_text}"
@@ -44,6 +69,27 @@ def transcribe():
         
         # Process with Gemini
         gemini_response = gemini.generate(prompt)
+        
+        # Clean up response if it's HTML (remove code block markers)
+        if is_browser:
+            # Remove ```html and ``` markers if present
+            gemini_response = gemini_response.replace('```html', '').replace('```', '')
+            # Ensure HTML has proper doctype if it's a full page
+            if '<html' not in gemini_response.lower():
+                gemini_response = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcription Summary</title>
+</head>
+<body>
+{gemini_response}
+</body>
+</html>"""
+        
+        # Save the request and response to a file
+        save_transcription(source, gemini_response)
         
         # Return Gemini's response with appropriate MIME type
         return Response(gemini_response, mimetype=response_type)
