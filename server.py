@@ -1,4 +1,4 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template_string
 import requests
 import re
 import gemini
@@ -11,6 +11,149 @@ app = Flask(__name__)
 # Create storage directory if it doesn't exist
 STORAGE_DIR = 'transcription_history'
 os.makedirs(STORAGE_DIR, exist_ok=True)
+
+@app.route('/', methods=['GET'])
+def index():
+    """Serve a simple form for entering YouTube URLs"""
+    html = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcription Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #c00;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 8px;
+        }
+        button {
+            padding: 8px 15px;
+            background: #c00;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #a00;
+        }
+    </style>
+</head>
+<body>
+    <h1>YouTube Transcription Tool</h1>
+    <p>Enter a YouTube URL or video ID below:</p>
+    
+    <form id="transcribe-form" action="/transcribe" method="get">
+        <input type="text" id="source" name="source" placeholder="YouTube URL or ID" required>
+        <button type="submit">Get Summary</button>
+    </form>
+</body>
+</html>"""
+    return html
+
+@app.route('/transcribe', methods=['GET'])
+def transcribe():
+    """Serve a page with a loader that will fetch the transcription"""
+    source = request.args.get('source')
+    if not source:
+        return "Error: 'source' parameter is required", 400
+    
+    # Basic validation
+    video_id = extract_video_id(source)
+    if not video_id:
+        return "Error: Invalid YouTube URL or video ID", 400
+    
+    # Create loader page with JavaScript to fetch the actual content
+    loader_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Transcription...</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }}
+        .loader {{
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #c00;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            margin: 40px auto;
+        }}
+        @keyframes spin {{
+            0% {{ transform: rotate(0deg); }}
+            100% {{ transform: rotate(360deg); }}
+        }}
+        .error {{
+            color: red;
+            padding: 20px;
+            border: 1px solid red;
+            display: none;
+        }}
+        .back-link {{
+            margin-top: 20px;
+        }}
+    </style>
+</head>
+<body>
+    <h1>Processing YouTube Video</h1>
+    <p id="status-message">Fetching and analyzing the transcript. This may take a minute...</p>
+    <div class="loader" id="loader"></div>
+    <div class="error" id="error-message">An error occurred while processing your request.</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {{
+            // Fetch the transcription results
+            fetch('/api/transcribe?source={source}')
+                .then(response => {{
+                    if (!response.ok) {{
+                        throw new Error('Network response was not ok');
+                    }}
+                    return response.text();
+                }})
+                .then(data => {{
+                    // Replace the entire page content with the response
+                    document.open();
+                    document.write(data);
+                    document.close();
+                }})
+                .catch(error => {{
+                    // Show error message
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('error-message').textContent = 
+                        'Error: ' + error.message + '. Please try again later.';
+                    document.getElementById('status-message').textContent = 'Failed to process video';
+                    
+                    // Add a back link
+                    const backLink = document.createElement('p');
+                    backLink.className = 'back-link';
+                    backLink.innerHTML = '<a href="/">Try another video</a>';
+                    document.body.appendChild(backLink);
+                }});
+        }});
+    </script>
+</body>
+</html>"""
+    
+    return loader_html
 
 def save_transcription(source, response):
     """Save transcription request and response to a text file with timestamp."""
@@ -31,8 +174,8 @@ def save_transcription(source, response):
     
     return filepath
 
-@app.route('/transcribe', methods=['GET'])
-def transcribe():
+@app.route('/api/transcribe', methods=['GET'])
+def process_transcribe():
     source = request.args.get('source')
     if not source:
         return "Error: 'source' parameter is required", 400
@@ -113,7 +256,7 @@ def extract_video_id(source):
     match = re.search(youtube_regex, source)
     if match:
         return match.group(1)
-    
+
     return None
 
 if __name__ == '__main__':
