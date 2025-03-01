@@ -1,0 +1,12 @@
+.aider*
+.env
+.DS_Store
+*.log
+*.pyc
+*.pyo
+*.pyd
+  .venv/
+__pycache__/
+.vscode/	
+*.code-workspace
+nohup.out
