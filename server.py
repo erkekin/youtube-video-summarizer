@@ -5,6 +5,7 @@ import gemini
 from youtube_transcript_api import YouTubeTranscriptApi
 import datetime
 import os
+import prompts  # Import the new prompts module
 
 # This is the default configuration, so you likely don't need to add anything
 app = Flask(__name__, static_folder='static')
@@ -80,12 +81,12 @@ def process_transcribe():
         user_agent = request.headers.get('User-Agent', '').lower()
         is_browser = any(browser in user_agent for browser in ['mozilla', 'chrome', 'safari', 'edge', 'firefox', 'webkit'])
         
-        # Create appropriate prompt based on client type
+        # Get appropriate prompt based on client type
         if is_browser:
-            prompt = f"Explain the key points in the below video transcription. Format your response as HTML with proper headings, paragraphs, and lists. Include a title at the top. IMPORTANT: Return only raw HTML without any code block markers or backticks. Video source: {source}\n\n{transcript_text}"
+            prompt = prompts.get_html_prompt(source, transcript_text)
             response_type = 'text/html'
         else:
-            prompt = f"Explain the key points in the below video transcription. Format your response in Markdown with proper headings, lists, and emphasis. Include a title at the top. Video source: {source}\n\n{transcript_text}"
+            prompt = prompts.get_markdown_prompt(source, transcript_text)
             response_type = 'text/markdown'
         
         # Process with Gemini
