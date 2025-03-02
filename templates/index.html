@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcription Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+</head>
+<body>
+    <h1>YouTube Transcription Tool</h1>
+    <p>Enter a YouTube URL or video ID below:</p>
+    
+    <div class="card">
+        <form id="transcribe-form" action="/transcribe" method="get">
+            <input type="text" id="source" name="source" placeholder="YouTube URL or ID" required>
+            <button type="submit">Get Summary</button>
+        </form>
+    </div>
+</body>
+</html>

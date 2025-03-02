@@ -1,0 +1,62 @@
+/* Card Component */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+/* Video Container */
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    margin-bottom: 30px;
+    border: 1px solid var(--video-border);
+    border-radius: 8px;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+/* Loader */
+.loader {
+    border: 16px solid var(--loader-bg);
+    border-top: 16px solid var(--accent-color);
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    margin: 40px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error {
+    color: var(--error-color);
+    padding: 20px;
+    border: 1px solid var(--error-border);
+    background-color: rgba(255, 0, 0, 0.05);
+    display: none;
+    border-radius: 8px;
+}
+
+/* Back Link */
+.back-link {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--blockquote-border);
+    text-align: center;
+}

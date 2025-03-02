@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, render_template_string
+from flask import Flask, request, Response, render_template
 import requests
 import re
 import gemini
@@ -6,7 +6,8 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import datetime
 import os
 
-app = Flask(__name__)
+# This is the default configuration, so you likely don't need to add anything
+app = Flask(__name__, static_folder='static')
 
 # Create storage directory if it doesn't exist
 STORAGE_DIR = 'transcription_history'
@@ -15,50 +16,7 @@ os.makedirs(STORAGE_DIR, exist_ok=True)
 @app.route('/', methods=['GET'])
 def index():
     """Serve a simple form for entering YouTube URLs"""
-    html = """<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Transcription Tool</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #c00;
-        }
-        input[type="text"] {
-            width: 70%;
-            padding: 8px;
-        }
-        button {
-            padding: 8px 15px;
-            background: #c00;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #a00;
-        }
-    </style>
-</head>
-<body>
-    <h1>YouTube Transcription Tool</h1>
-    <p>Enter a YouTube URL or video ID below:</p>
-    
-    <form id="transcribe-form" action="/transcribe" method="get">
-        <input type="text" id="source" name="source" placeholder="YouTube URL or ID" required>
-        <button type="submit">Get Summary</button>
-    </form>
-</body>
-</html>"""
-    return html
+    return render_template('index.html')
 
 @app.route('/transcribe', methods=['GET'])
 def transcribe():
@@ -72,88 +30,8 @@ def transcribe():
     if not video_id:
         return "Error: Invalid YouTube URL or video ID", 400
     
-    # Create loader page with JavaScript to fetch the actual content
-    loader_html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading Transcription...</title>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-        }}
-        .loader {{
-            border: 16px solid #f3f3f3;
-            border-top: 16px solid #c00;
-            border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
-            margin: 40px auto;
-        }}
-        @keyframes spin {{
-            0% {{ transform: rotate(0deg); }}
-            100% {{ transform: rotate(360deg); }}
-        }}
-        .error {{
-            color: red;
-            padding: 20px;
-            border: 1px solid red;
-            display: none;
-        }}
-        .back-link {{
-            margin-top: 20px;
-        }}
-    </style>
-</head>
-<body>
-    <h1>Processing YouTube Video</h1>
-    <p id="status-message">Fetching and analyzing the transcript. This may take a minute...</p>
-    <div class="loader" id="loader"></div>
-    <div class="error" id="error-message">An error occurred while processing your request.</div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {{
-            // Fetch the transcription results
-            fetch('/api/transcribe?source={source}')
-                .then(response => {{
-                    if (!response.ok) {{
-                        throw new Error('Network response was not ok');
-                    }}
-                    return response.text();
-                }})
-                .then(data => {{
-                    // Replace the entire page content with the response
-                    document.open();
-                    document.write(data);
-                    document.close();
-                }})
-                .catch(error => {{
-                    // Show error message
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('error-message').style.display = 'block';
-                    document.getElementById('error-message').textContent = 
-                        'Error: ' + error.message + '. Please try again later.';
-                    document.getElementById('status-message').textContent = 'Failed to process video';
-                    
-                    // Add a back link
-                    const backLink = document.createElement('p');
-                    backLink.className = 'back-link';
-                    backLink.innerHTML = '<a href="/">Try another video</a>';
-                    document.body.appendChild(backLink);
-                }});
-        }});
-    </script>
-</body>
-</html>"""
-    
-    return loader_html
+    # Render the loader template with the source parameter
+    return render_template('loader.html', source=source)
 
 def save_transcription(source, response):
     """Save transcription request and response to a text file with timestamp."""
@@ -217,19 +95,14 @@ def process_transcribe():
         if is_browser:
             # Remove ```html and ``` markers if present
             gemini_response = gemini_response.replace('```html', '').replace('```', '')
-            # Ensure HTML has proper doctype if it's a full page
-            if '<html' not in gemini_response.lower():
-                gemini_response = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Transcription Summary</title>
-</head>
-<body>
-{gemini_response}
-</body>
-</html>"""
+            
+            # Use the result template and pass the video_id for embedding
+            return render_template('result.html', 
+                                  content=gemini_response,
+                                  video_id=video_id)
+        else:
+            # For non-browser clients, just return the markdown
+            return Response(gemini_response, mimetype=response_type)
         
         # Save the request and response to a file
         save_transcription(source, gemini_response)

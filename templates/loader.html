@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Transcription...</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+</head>
+<body>
+    <h1>Processing YouTube Video</h1>
+    <p id="status-message">Fetching and analyzing the transcript. This may take a minute...</p>
+    <div class="loader" id="loader"></div>
+    <div class="error" id="error-message">An error occurred while processing your request.</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch the transcription results
+            fetch('/api/transcribe?source={{ source }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Replace the entire page content with the response
+                    document.open();
+                    document.write(data);
+                    document.close();
+                })
+                .catch(error => {
+                    // Show error message
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('error-message').textContent = 
+                        'Error: ' + error.message + '. Please try again later.';
+                    document.getElementById('status-message').textContent = 'Failed to process video';
+                    
+                    // Add a back link
+                    const backLink = document.createElement('p');
+                    backLink.className = 'back-link';
+                    backLink.innerHTML = '<a href="/">Try another video</a>';
+                    document.body.appendChild(backLink);
+                });
+        });
+    </script>
+</body>
+</html>
