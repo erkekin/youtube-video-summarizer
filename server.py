@@ -91,6 +91,9 @@ def process_transcribe():
         # Process with Gemini
         gemini_response = gemini.generate(prompt)
         
+        # Save the request and response to a file
+        save_transcription(source, gemini_response)
+        
         # Clean up response if it's HTML (remove code block markers)
         if is_browser:
             # Remove ```html and ``` markers if present
@@ -103,12 +106,7 @@ def process_transcribe():
         else:
             # For non-browser clients, just return the markdown
             return Response(gemini_response, mimetype=response_type)
-        
-        # Save the request and response to a file
-        save_transcription(source, gemini_response)
-        
-        # Return Gemini's response with appropriate MIME type
-        return Response(gemini_response, mimetype=response_type)
+            
     except Exception as e:
         return f"Error processing request: {str(e)}", 500
 
