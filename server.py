@@ -70,12 +70,24 @@ def process_transcribe():
     
     try:
         # Get transcript using YouTubeTranscriptApi
-        transcript_text = ""
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
         
-        # Format transcript into a single string
+        # Format transcript with timestamps
+        transcript_text = ""
+        timestamp_map = {}
+        
         for entry in transcript:
-            transcript_text += f"{entry['text']} "
+            # Get timestamp in seconds and convert to MM:SS format
+            seconds = int(entry['start'])
+            minutes = seconds // 60
+            remaining_seconds = seconds % 60
+            timestamp = f"{minutes}:{remaining_seconds:02d}"
+            
+            # Add formatted timestamp and text to transcript
+            transcript_text += f"[{timestamp}] {entry['text']} "
+            
+            # Store mapping of timestamps to seconds for reference
+            timestamp_map[timestamp] = seconds
         
         # Check if request is from a browser
         user_agent = request.headers.get('User-Agent', '').lower()
@@ -83,10 +95,10 @@ def process_transcribe():
         
         # Get appropriate prompt based on client type
         if is_browser:
-            prompt = prompts.get_html_prompt(source, transcript_text)
+            prompt = prompts.get_html_prompt(source, transcript_text, timestamp_map)
             response_type = 'text/html'
         else:
-            prompt = prompts.get_markdown_prompt(source, transcript_text)
+            prompt = prompts.get_markdown_prompt(source, transcript_text, timestamp_map)
             response_type = 'text/markdown'
         
         # Process with Gemini

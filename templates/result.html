@@ -29,6 +29,16 @@
         .footer-right a:hover {
             text-decoration: underline;
         }
+        
+        .timestamp {
+            background-color: var(--code-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            cursor: pointer;
+            color: var(--accent-color);
+            border: 1px solid var(--code-border);
+        }
     </style>
 </head>
 <body>
@@ -36,9 +46,10 @@
     
     <div class="video-container">
         <iframe 
+            id="youtube-player"
             width="100%" 
             height="100%" 
-            src="https://www.youtube.com/embed/{{ video_id }}" 
+            src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1" 
             title="YouTube Video" 
             frameborder="0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
@@ -52,8 +63,71 @@
             Made with ❤️ in Cambridge UK
         </div>
         <div class="footer-right">
-            <a href="/">⬅ Analyze another video</a>
+            <a href="/">Analyze another video</a>
         </div>
     </footer>
+    
+    <!-- YouTube API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    
+    <script>
+        // YouTube player object
+        let player;
+        
+        // Initialize YouTube player when API is ready
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+        
+        function onPlayerReady(event) {
+            // Find all timestamp links and add click handlers
+            setupTimestampLinks();
+        }
+        
+        function setupTimestampLinks() {
+            document.addEventListener('click', function(event) {
+                // Check if the clicked element is a timestamp link
+                if (event.target.classList.contains('timestamp') || 
+                    (event.target.parentElement && event.target.parentElement.classList.contains('timestamp'))) {
+                    
+                    event.preventDefault();
+                    
+                    // Get the actual link element
+                    const link = event.target.classList.contains('timestamp') ? 
+                                 event.target : 
+                                 event.target.parentElement;
+                    
+                    // Extract time from href attribute
+                    const href = link.getAttribute('href');
+                    if (href && href.includes('t=')) {
+                        const timeParam = href.split('t=')[1];
+                        let seconds = 0;
+                        
+                        // Parse different time formats (seconds or MM:SS)
+                        if (timeParam.includes(':')) {
+                            // Format is MM:SS
+                            const parts = timeParam.split(':');
+                            const minutes = parseInt(parts[0], 10);
+                            const secs = parseInt(parts[1], 10);
+                            seconds = (minutes * 60) + secs;
+                        } else {
+                            // Format is just seconds
+                            seconds = parseInt(timeParam, 10);
+                        }
+                        
+                        // Seek to time if player is ready
+                        if (player && player.seekTo) {
+                            player.seekTo(seconds, true);
+                            player.playVideo();
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
