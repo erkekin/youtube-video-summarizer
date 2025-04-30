@@ -28,7 +28,7 @@ A web service that generates AI-powered summaries of YouTube videos based on the
 ### Setup
 ```bash
 # Clone the repository
-$ git clone https://github.com/yourusername/youtube-video-summarizer.git
+$ git clone https://github.com/erkekin/youtube-video-summarizer.git
 $ cd youtube-video-summarizer
 
 # Install dependencies
