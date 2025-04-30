@@ -53,6 +53,20 @@ def save_transcription(source, response):
     
     return filepath
 
+def get_cached_response(video_id):
+    """Return cached response for a video_id if it exists, else None."""
+    cache_file = os.path.join(STORAGE_DIR, f"{video_id}.cache.txt")
+    if os.path.exists(cache_file):
+        with open(cache_file, 'r', encoding='utf-8') as f:
+            return f.read()
+    return None
+
+def save_response_to_cache(video_id, response):
+    """Save response to cache file by video_id."""
+    cache_file = os.path.join(STORAGE_DIR, f"{video_id}.cache.txt")
+    with open(cache_file, 'w', encoding='utf-8') as f:
+        f.write(response)
+
 @app.route('/api/transcribe', methods=['GET'])
 def process_transcribe():
     source = request.args.get('source')
@@ -68,6 +82,19 @@ def process_transcribe():
     if re.match(r'^[a-zA-Z0-9_-]{11}$', source):
         source = f"https://www.youtube.com/watch?v={source}"
     
+    # Check cache first
+    cached_response = get_cached_response(video_id)
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_browser = any(browser in user_agent for browser in ['mozilla', 'chrome', 'safari', 'edge', 'firefox', 'webkit'])
+    
+    if cached_response is not None:
+        # Serve cached response
+        if is_browser:
+            # Remove ```html and ``` markers if present
+            html_response = cached_response.replace('```html', '').replace('```', '')
+            return render_template('result.html', content=html_response, video_id=video_id)
+        else:
+            return Response(cached_response, mimetype='text/markdown')
     try:
         # Get transcript using YouTubeTranscriptApi
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
@@ -89,10 +116,6 @@ def process_transcribe():
             # Store mapping of timestamps to seconds for reference
             timestamp_map[timestamp] = seconds
         
-        # Check if request is from a browser
-        user_agent = request.headers.get('User-Agent', '').lower()
-        is_browser = any(browser in user_agent for browser in ['mozilla', 'chrome', 'safari', 'edge', 'firefox', 'webkit'])
-        
         # Get appropriate prompt based on client type
         if is_browser:
             prompt = prompts.get_html_prompt(source, transcript_text, timestamp_map)
@@ -106,6 +129,7 @@ def process_transcribe():
         
         # Save the request and response to a file
         save_transcription(source, gemini_response)
+        save_response_to_cache(video_id, gemini_response)
         
         # Clean up response if it's HTML (remove code block markers)
         if is_browser:
