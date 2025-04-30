@@ -12,7 +12,7 @@ def generate(input_text):
         api_key=os.environ.get("GEMINI_API_KEY"),
     )
 
-    model = "gemini-2.0-pro-exp-02-05"
+    model = "gemini-2.5-flash-preview-04-17" # "gemini-2.0-pro-exp-02-05"
     contents = [
         types.Content(
             role="user",

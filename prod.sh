@@ -1,5 +1,5 @@
 #!/bin/bash
 
 # Start the systemd service for production
-echo "Starting youtube-summarizer systemd service..."
-sudo systemctl start youtube-summarizer
+echo "Starting transcribe systemd service..."
+sudo systemctl start transcribe
