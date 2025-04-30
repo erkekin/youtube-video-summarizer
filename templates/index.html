@@ -17,6 +17,16 @@
                 <button type="submit">Get Summary</button>
             </form>
         </div>
+        {% if recent_videos %}
+        <div class="recent-videos" style="margin-top: 18px;">
+            <h3 style="margin-bottom: 8px;">Recent Transcribed Videos</h3>
+            <ul style="padding-left: 18px;">
+            {% for video in recent_videos %}
+                <li><a href="{{ video.url }}" target="_blank">{{ video.url }}</a></li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
     <footer>
         <div class="footer-left">

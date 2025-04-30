@@ -16,8 +16,21 @@ os.makedirs(STORAGE_DIR, exist_ok=True)
 
 @app.route('/', methods=['GET'])
 def index():
-    """Serve a simple form for entering YouTube URLs"""
-    return render_template('index.html')
+    """Serve a simple form for entering YouTube URLs and show last 5 video links."""
+    # Get all transcription files, sort by modified time (descending)
+    files = [f for f in os.listdir(STORAGE_DIR) if f.endswith('.txt') and '_' in f]
+    files = sorted(files, reverse=True)[:5]
+    video_links = []
+    for fname in files:
+        # filename format: TIMESTAMP_VIDEOID.txt
+        parts = fname.split('_')
+        if len(parts) >= 2:
+            video_id = parts[-1].replace('.txt', '')
+            yt_url = f'https://www.youtube.com/watch?v={video_id}'
+            app_url = f'https://yt.erkekin.com/transcribe?source={yt_url}'
+            video_links.append({'id': video_id, 'url': app_url})
+    return render_template('index.html', recent_videos=video_links)
+
 
 @app.route('/transcribe', methods=['GET'])
 def transcribe():
