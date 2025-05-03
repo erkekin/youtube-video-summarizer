@@ -3,13 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Transcription Tool</title>
+    <title>Transcribe & Summarize YouTube Videos Instantly | Free AI YouTube Transcription Tool</title>
+    <meta name="description" content="Transcribe and summarize YouTube videos instantly with AI. Paste a YouTube link and get a clean transcript and summary. Free, fast, and easy!">
+    <meta name="keywords" content="YouTube transcript, YouTube summarizer, AI transcription, video summary, YouTube to text">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://yt.erkekin.com/">
+    <!-- Open Graph tags -->
+    <meta property="og:title" content="Transcribe & Summarize YouTube Videos Instantly">
+    <meta property="og:description" content="Transcribe and summarize YouTube videos instantly with AI. Free, fast, and easy!">
+    <meta property="og:url" content="https://yt.erkekin.com/">
+    <meta property="og:type" content="website">
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Transcribe & Summarize YouTube Videos Instantly">
+    <meta name="twitter:description" content="Transcribe and summarize YouTube videos instantly with AI. Free, fast, and easy!">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "YouTube Summarizer",
+      "url": "https://yt.erkekin.com/",
+      "description": "Transcribe and summarize YouTube videos instantly with AI.",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "All"
+    }
+    </script>
 </head>
 <body>
+    <main>
     <div class="container">
-        <h1>YouTube Transcription Tool</h1>
+        <h1>Transcribe & Summarize YouTube Videos Instantly</h1>
         <p>Enter a YouTube URL or video ID below:</p>
         <div class="card">
             <form id="transcribe-form" class="form-row" action="/transcribe" method="get">
