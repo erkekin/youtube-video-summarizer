@@ -18,6 +18,7 @@ def get_html_prompt(source, transcript_text, timestamp_map=None):
 When you mention specific points in the video, please reference them using timestamp links.
 The transcript contains timestamps in [MM:SS] format at the beginning of segments.
 Create timestamp links in this format: <a href="#t=MM:SS" class="timestamp">MM:SS</a>
+Do NOT wrap timestamp links in parentheses.
 
 For example, if you want to reference something at 2 minutes and 30 seconds, use:
 <a href="#t=2:30" class="timestamp">2:30</a>

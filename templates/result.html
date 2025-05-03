@@ -39,10 +39,41 @@
             color: var(--accent-color);
             border: 1px solid var(--code-border);
         }
+        
+        .transcript-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .toggle-timestamps-btn {
+            background: var(--card-bg);
+            color: var(--accent-color);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 6px 18px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        .toggle-timestamps-btn:hover {
+            background: var(--accent-color);
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    {{ content|safe }}
+    <div class="transcript-toolbar">
+        <button id="toggle-timestamps" class="toggle-timestamps-btn" type="button">Hide timestamps</button>
+    </div>
+    <div id="transcript-content">
+        {{ content|safe }}
+    </div>
     
     <div class="video-container">
         <iframe 
@@ -59,11 +90,14 @@
     </div>
     
     <footer>
-        <div class="footer-left">
-            Made with ❤️ in Cambridge UK
-        </div>
-        <div class="footer-right">
-            <a href="/">Analyze another video</a>
+        <div class="footer-content">
+            <div class="footer-left">
+                Made with ❤️ by <a href="https://x.com/erkekin" target="_blank" rel="noopener">@erkekin</a> at Cambridge, UK
+            </div>
+            <div class="footer-right">
+                <a href="/">Analyze another video</a>
+                <a href="https://github.com/erkekin/youtube-video-summarizer/blob/main/templates/result.html" target="_blank" rel="noopener" style="margin-left: 18px;">Contribute to this page</a>
+            </div>
         </div>
     </footer>
     
@@ -71,6 +105,18 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     
     <script>
+        // Hide/show timestamps logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggle-timestamps');
+            let hidden = false;
+            btn.addEventListener('click', function() {
+                hidden = !hidden;
+                document.querySelectorAll('#transcript-content .timestamp').forEach(function(el) {
+                    el.style.display = hidden ? 'none' : '';
+                });
+                btn.textContent = hidden ? 'Show timestamps' : 'Hide timestamps';
+            });
+        });
         // YouTube player object
         let player;
         

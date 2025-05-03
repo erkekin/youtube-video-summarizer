@@ -12,33 +12,35 @@
         <h1>YouTube Transcription Tool</h1>
         <p>Enter a YouTube URL or video ID below:</p>
         <div class="card">
-            <form id="transcribe-form" action="/transcribe" method="get">
+            <form id="transcribe-form" class="form-row" action="/transcribe" method="get">
                 <input type="text" id="source" name="source" placeholder="YouTube URL or ID" required>
                 <button type="submit">Get Summary</button>
             </form>
         </div>
         {% if recent_videos %}
-        <div class="recent-videos" style="margin-top: 18px;">
-            <h3 style="margin-bottom: 8px;">Recent Transcribed Videos</h3>
-            <ul style="padding-left: 18px;">
+        <div class="recent-videos">
+            <h3>Recent Transcribed Videos</h3>
+            <ul>
             {% for video in recent_videos %}
                 <li><a href="{{ video.url }}" target="_blank">{{ video.url }}</a></li>
             {% endfor %}
             </ul>
         </div>
         {% endif %}
-        <div class="shortcut-card" style="margin-top: 24px; background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 8px; text-align: center;">
-            <h3 style="margin-bottom: 8px;">iOS Shortcut</h3>
+        <div class="shortcut-card">
+            <h3>iOS Shortcut</h3>
             <p>Download our iOS Shortcut to transcribe YouTube videos directly from your iPhone or iPad:</p>
-            <a href="https://www.icloud.com/shortcuts/f187f05a15d144e0a9a64b07ec100b0f" target="_blank" style="display: inline-block; margin-top: 8px; padding: 10px 22px; background: var(--accent-color); color: #fff; border-radius: 5px; text-decoration: none; font-weight: bold;">Download Shortcut</a>
+            <a class="shortcut-btn" href="https://www.icloud.com/shortcuts/f187f05a15d144e0a9a64b07ec100b0f" target="_blank">Download Shortcut</a>
         </div>
     </div>
     <footer>
-        <div class="footer-left">
-            Made with ❤️ by <a href="https://x.com/erkekin" target="_blank" rel="noopener">@erkekin</a>
-        </div>
-        <div class="footer-right">
-            <a href="https://github.com/erkekin/youtube-video-summarizer" target="_blank" rel="noopener">Contribute to this page</a>
+        <div class="footer-content">
+            <div class="footer-left">
+                Made with ❤️ by <a href="https://x.com/erkekin" target="_blank" rel="noopener">@erkekin</a> at Cambridge, UK
+            </div>
+            <div class="footer-right">
+                <a href="https://github.com/erkekin/youtube-video-summarizer/blob/main/templates/index.html" target="_blank" rel="noopener">Contribute to this page</a>
+            </div>
         </div>
     </footer>
 </body>
